@@ -38,22 +38,34 @@ GROUP BY `Country`
 ORDER BY COUNT(*) DESC;
 ```
 
+<<<<<<< HEAD
 #### Missing information regarding cities impact mostly Asian based Companies in Singapore 
+=======
+### Missing information regarding cities impact mostly Asian based Companies in Singapore 
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 ```{r}
 Select * FROM `Unicorn_Companies`
 WHERE `Funding` NOT LIKE "$%";
 ```
 
+<<<<<<< HEAD
 #### 12 companies have no information regarding their `Funding`, their valuation isat a maximumof $4B.
+=======
+### 12 companies have no information regarding their `Funding`, their valuation isat a maximumof $4B.
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 ```{r}
 Select * FROM `Unicorn_Companies`
 WHERE `Select Investors` LIKE "n/a";
 ```
 
+<<<<<<< HEAD
 #### Only one company laacks information on its investors, also has small valuation comparedto the list
 
+=======
+### only onecompany laacks information on its investors, also has small valuation comparedto the list
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 
 ### Valuation and Funding data need to be formatted
@@ -75,11 +87,19 @@ SET `Valuation`= SUBSTRING_INDEX(SUBSTR(Valuation,2),"B",1);
 SELECT * FROM `Unicorn_Companies`;
 ```
 
+<<<<<<< HEAD
 #### For Funding we have two different scenarios (millions and billions) and since some companies have no info at all, we will leave as it is for now
 
 
 
 ### Check most present categories in this list 
+=======
+### For Funding we have two different scenarios (millions and billions) and since some companies have no info at all, we will leave as it is for now
+
+
+
+### Check most present categoriesin this list 
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 ```{r}
 SELECT `Industry`,  COUNT(`Company`) AS company_count ,
     ROUND(COUNT(*) *100 /
@@ -89,9 +109,14 @@ GROUP BY `Industry`
 ORDER BY company_count DESC ;
 ```
 
+<<<<<<< HEAD
 #### Fintech and Internet software & services represent more than a third of present companies in this list 
 #### 5% of the companies are not categorized and needto bechecked as well.
 
+=======
+### Fintech and Internet software & services represent more than a third of present companies in this list 
+### 5% of the companies are not categorized and needto bechecked as well.*/
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 
 ```{r}
@@ -105,7 +130,11 @@ GROUP BY `Industry`
 ORDER BY total_value DESC ;
 ```
 
+<<<<<<< HEAD
 #### The order of presence for the industries remains the same for the top and have amst same presence in terms of value as it is of company count 
+=======
+### the order of presence for the industries remains the same for the top and have amst same presence in terms of value as it is of company count 
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 ```{r}
 SELECT `Country`,SUM(`Valuation`) AS value_country, ROUND(AVG(`Valuation`),2),COUNT(`Company`) AS number_cie,
@@ -116,7 +145,11 @@ GROUP BY `Country`
 ORDER BY value_country DESC;
 ```
 
+<<<<<<< HEAD
 #### US and China are way higher on the list in terms of value of their companies 
+=======
+### US and China are way higher on the list interms of value of their companies 
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
 
 ```{r}
 SELECT Country, ROUND(AVG(Valuation),2) AS avg_value
@@ -216,6 +249,7 @@ ORDER BY diff_list;
 - Companies appearing on the list have an average age of 10 years.
 - On average companies that are in the promising industries take less time 
 - On average it takes 7 years to get to $1B value
+<<<<<<< HEAD
 
 
 
@@ -224,3 +258,5 @@ ORDER BY diff_list;
 
 
 
+=======
+>>>>>>> 4afcdb483fb67f3b4ece32475da6cc3b31de2709
