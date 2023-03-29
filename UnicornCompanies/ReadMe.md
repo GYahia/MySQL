@@ -1,8 +1,14 @@
+
+# UnicornCompanies Challenge
+
+Source Link: https://www.mavenanalytics.io/blog/maven-unicorn-challenge
+
+## Data Overall 
 ```{r}
 SELECT * From `Unicorn_Companies`;
 ```
 
-### Checking NULL VALUES
+## Checking NULL VALUES
 ```{r}
 SELECT *
 From `Unicorn_Companies`
@@ -11,12 +17,12 @@ WHERE `Company` is NULL OR `Valuation` IS NULL OR `Date Joined` IS NULL OR `Indu
 ```
 
 
-### Checking DATA
+## Checking DATA
 
-## A first glanse at the xlsx file showed 
-## - Some empty cells for City
-## - Unknown values for Funding
-## - Missing information for Select Investors 
+ A first glanse at the xlsx file showed 
+ - Some empty cells for City
+ - Unknown values for Funding
+ - Missing information for Select Investors 
 
 
 
@@ -32,21 +38,22 @@ GROUP BY `Country`
 ORDER BY COUNT(*) DESC;
 ```
 
-## Missing information regarding cities impact mostly Asian based Companies in Singapore 
+#### Missing information regarding cities impact mostly Asian based Companies in Singapore 
 
 ```{r}
 Select * FROM `Unicorn_Companies`
 WHERE `Funding` NOT LIKE "$%";
 ```
 
-## 12 companies have no information regarding their `Funding`, their valuation isat a maximumof $4B.
+#### 12 companies have no information regarding their `Funding`, their valuation isat a maximumof $4B.
 
 ```{r}
 Select * FROM `Unicorn_Companies`
 WHERE `Select Investors` LIKE "n/a";
 ```
 
-## only onecompany laacks information on its investors, also has small valuation comparedto the list
+#### Only one company laacks information on its investors, also has small valuation comparedto the list
+
 
 
 ### Valuation and Funding data need to be formatted
@@ -68,11 +75,11 @@ SET `Valuation`= SUBSTRING_INDEX(SUBSTR(Valuation,2),"B",1);
 SELECT * FROM `Unicorn_Companies`;
 ```
 
-## For Funding we have two different scenarios (millions and billions) and since some companies have no info at all, we will leave as it is for now
+#### For Funding we have two different scenarios (millions and billions) and since some companies have no info at all, we will leave as it is for now
 
 
 
-## Check most present categoriesin this list 
+### Check most present categories in this list 
 ```{r}
 SELECT `Industry`,  COUNT(`Company`) AS company_count ,
     ROUND(COUNT(*) *100 /
@@ -82,8 +89,9 @@ GROUP BY `Industry`
 ORDER BY company_count DESC ;
 ```
 
-## Fintech and Internet software & services represent more than a third of present companies in this list 
-## 5% of the companies are not categorized and needto bechecked as well.*/
+#### Fintech and Internet software & services represent more than a third of present companies in this list 
+#### 5% of the companies are not categorized and needto bechecked as well.
+
 
 
 ```{r}
@@ -97,7 +105,7 @@ GROUP BY `Industry`
 ORDER BY total_value DESC ;
 ```
 
-## the order of presence for the industries remains the same for the top and have amst same presence in terms of value as it is of company count 
+#### The order of presence for the industries remains the same for the top and have amst same presence in terms of value as it is of company count 
 
 ```{r}
 SELECT `Country`,SUM(`Valuation`) AS value_country, ROUND(AVG(`Valuation`),2),COUNT(`Company`) AS number_cie,
@@ -108,7 +116,7 @@ GROUP BY `Country`
 ORDER BY value_country DESC;
 ```
 
-## US and China are way higher on the list interms of value of their companies 
+#### US and China are way higher on the list in terms of value of their companies 
 
 ```{r}
 SELECT Country, ROUND(AVG(Valuation),2) AS avg_value
@@ -118,7 +126,7 @@ ORDER BY avg_value DESC
 LIMIT 10;
 ```
 
-## Calculating numberofinvestors by company 
+### Calculating number of investors by company 
 ```{r}
 SELECT LENGTH(`Select Investors`), LENGTH(REPLACE(`Select Investors`,",","")), `Select Investors`
 FROM `Unicorn_Companies`;
@@ -147,6 +155,9 @@ FROM `Unicorn_Companies`
 GROUP BY `Count_Investors`
 ORDER BY COUNT(*) DESC; 
 ```
+
+#### Too many errors appearing when aggregating or manipulatingthe data, checking their type once again:
+
 ```{r}
 SELECT 
 TABLE_CATALOG,
@@ -157,13 +168,16 @@ DATA_TYPE
 FROM INFORMATION_SCHEMA.COLUMNS
 where TABLE_NAME = 'Unicorn_Companies'; 
 ```
+
+#### The mistakes in ordering by Valuation came from the fact that it was a string and not a numeric.
+
 ```{r}
 SELECT `Company`,`Industry` , CAST(`Valuation` AS SIGNED) AS value_cie, `Country`-- in mysql canot cast as int, https://www.w3schools.com/sql/func_mysql_convert.asp
 FROM `Unicorn_Companies`
 WHERE CAST(`Valuation` AS SIGNED) >= 20
 ORDER BY value_cie DESC  ;
 ```
-## Check Age of companies in the list
+### Check Age of companies in the list
 ```{r}
 SELECT `Company`,`Year Founded`,DATE_FORMAT(CURDATE(), '%Y')-`Year Founded` AS age, 
     (SELECT Round(DATE_FORMAT(CURDATE(), '%Y')-AVG(`Year Founded`),0)
@@ -172,7 +186,7 @@ FROM `Unicorn_Companies`
 GROUP BY age, `Company`,`Year Founded`
 ORDER BY age ASC;
 ```
-## Check time needed to be listed
+### Check time needed to be listed
 ```{r}
 SELECT `Industry`, Round(AVG(TIMESTAMPDIFF(YEAR,DATE_FORMAT(`Year Founded`,"%Y"), STR_TO_DATE(`Date Joined`,'%Y-%m-%d'))),1) AS avg_age 
 FROM `Unicorn_Companies`
@@ -195,13 +209,15 @@ GROUP BY industry
 ORDER BY diff_list;
 ```
 
-### Conclusion
+## Conclusion
 - More likely to put in place a unicorn company if based in the US or China
 - Most promising industries are Fintech, Internet software & services,E-commerce & direct-to-consumer andArtificial intelligence
 - To have a $1B company, ivestors are needed since only lessthan 4.5% of them have only 1 investor.
 - Companies appearing on the list have an average age of 10 years.
 - On average companies that are in the promising industries take less time 
 - On average it takes 7 years to get to $1B value
+
+
 
 
 
