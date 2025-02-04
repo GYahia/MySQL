@@ -1,8 +1,7 @@
-# SQL File README
+# World Layoffs
 
-This README file is automatically generated from the SQL file.
 
-## SQL Statements
+## Creating Database and Uploading Data from CSV 
 ```sql
 -- Create a new database called world_layoffs
 DROP DATABASE IF EXISTS world_layoffs;
@@ -26,6 +25,9 @@ LIMIT 10;
 /*RENAME TABLE world_layoffs TO  layoffs;*/
 SHOW COLUMNS
 FROM layoffs;
+```
+## Data Cleaning
+```sql
 --------------------------------------------------------
 -- DATA CLEANING
 --------------------------------------------------------
