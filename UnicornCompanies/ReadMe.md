@@ -84,13 +84,10 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
 - Create a MySQL database and import the Unicorn_Companies dataset (CSV/Excel).
 
 - Run SQL Script:
-Execute the provided UnicornCompanies.sql to:
-
--- Clean and standardize data.
-
--- Add the Count_Investors column.
-
--- Perform analyses.
+Execute the provided UnicornCompanies.sql to:  
+    - Clean and standardize data.
+    - Add the Count_Investors column.
+    - Perform analyses.
 
 ## 📊 Key Insights
 - **Top Industries**: Fintech, Internet software/services, E-commerce, and AI.
