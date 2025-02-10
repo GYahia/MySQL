@@ -18,6 +18,7 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
 ---
 
 ## 🛠️ Key Features
+### 1. **Data Cleaning & Preparation**  
 - **Handling Missing Values**:  
     Identified and analyzed NULLs/empty cells in `City`, `Funding`, and `Select Investors`.
     ```sql
@@ -39,3 +40,75 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
     UPDATE Unicorn_Companies
     SET Count_Investors = LENGTH(Select Investors) - LENGTH(REPLACE(Select Investors, ",", "")) + 1;
     ```
+
+### 2. **Core Analyses**  
+- **Industry Dominance**:  
+    Fintech and Internet softwre/services account for 36% of unicorns.
+    ```sql
+    SELECT Industry, COUNT(Company) AS company_count, 
+    ROUND(COUNT(*) * 100 / (SELECT COUNT(*) FROM Unicorn_Companies), 2) AS percent_count
+    FROM Unicorn_Companies
+    GROUP BY Industry
+    ORDER BY company_count DESC;
+    ```
+- **Country Dominance**:  
+    The U.S. and China represent 75% of total unicorn valuation.
+    ```sql
+    SELECT Country, SUM(Valuation) AS total_value
+    FROM Unicorn_Companies
+    GROUP BY Country
+    ORDER BY total_value DESC;
+    ```
+- **Investor Trends**:  
+    75% of unicorns have 3+ investors; only 4.5% have 1 investor.
+    ```sql
+    SELECT Count_Investors, COUNT(*), 
+    ROUND(COUNT(*) * 100 / (SELECT COUNT(*) FROM Unicorn_Companies), 2) AS percent
+    FROM Unicorn_Companies
+    GROUP BY Count_Investors
+    ORDER BY COUNT(*) DESC;
+    ```
+- **Time to Unicorn Status**:  
+    Average time to reach $1B valuation: 7 years.
+    ```sql
+    SELECT Industry, 
+    ROUND(AVG(TIMESTAMPDIFF(YEAR, STR_TO_DATE(Year_Founded, "%Y"), Date_Joined)), 0) AS avg_years
+    FROM Unicorn_Companies
+    GROUP BY Industry
+    ORDER BY avg_years ASC;
+    ```
+
+🚀 Setup Instructions
+Import Data:
+
+Create a MySQL database and import the Unicorn_Companies dataset (CSV/Excel).
+
+Run SQL Script:
+Execute the provided UnicornCompanies.sql to:
+
+Clean and standardize data.
+
+Add the Count_Investors column.
+
+Perform analyses.
+
+📊 Key Insights
+Top Industries: Fintech, Internet software/services, E-commerce, and AI.
+
+Geographic Hotspots: U.S. and China dominate in total valuation.
+
+Investor Influence: Most unicorns have 3+ investors.
+
+Growth Speed: Average unicorn age is 10 years; takes 7 years to hit $1B.
+
+🔧 Future Enhancements
+Integrate external data (e.g., GDP, market trends).
+
+Build a Tableau/Power BI dashboard for visual trends.
+
+Analyze funding rounds in-depth.
+
+📜 License
+MIT License. See LICENSE for details.
+
+
