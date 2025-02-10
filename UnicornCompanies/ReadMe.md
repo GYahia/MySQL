@@ -25,17 +25,17 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
     WHERE City = "" OR Funding NOT LIKE "$%" OR Select Investors LIKE "n/a";
     ```
 
-- **Valuation Standardization**:
+- **Valuation Standardization**:  
     Converted Valuation (Example: "$4B" → "4") to numeric values.
     ```sql  
     UPDATE Unicorn_Companies
     SET Valuation = SUBSTRING_INDEX(SUBSTR(Valuation,2), "B", 1);
     ```
 
-- **Investor Count**:
-Added a `Count_Investors` column by counting commas in `Select Investors`.
-```sql
-ALTER TABLE Unicorn_Companies ADD COLUMN Count_Investors INT;
-UPDATE Unicorn_Companies
-SET Count_Investors = LENGTH(Select Investors) - LENGTH(REPLACE(Select Investors, ",", "")) + 1;
-```
+- **Investor Count**:  
+    Added a `Count_Investors` column by counting commas in `Select Investors`.
+    ```sql
+    ALTER TABLE Unicorn_Companies ADD COLUMN Count_Investors INT;
+    UPDATE Unicorn_Companies
+    SET Count_Investors = LENGTH(Select Investors) - LENGTH(REPLACE(Select Investors, ",", "")) + 1;
+    ```
