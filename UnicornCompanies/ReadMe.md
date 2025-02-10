@@ -77,38 +77,36 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
     GROUP BY Industry
     ORDER BY avg_years ASC;
     ```
+---
+## 🚀 Setup Instructions
+### 1. **Import Data**:
 
-🚀 Setup Instructions
-Import Data:
+- Create a MySQL database and import the Unicorn_Companies dataset (CSV/Excel).
 
-Create a MySQL database and import the Unicorn_Companies dataset (CSV/Excel).
-
-Run SQL Script:
+- Run SQL Script:
 Execute the provided UnicornCompanies.sql to:
 
-Clean and standardize data.
+-- Clean and standardize data.
 
-Add the Count_Investors column.
+-- Add the Count_Investors column.
 
-Perform analyses.
+-- Perform analyses.
 
-📊 Key Insights
-Top Industries: Fintech, Internet software/services, E-commerce, and AI.
+## 📊 Key Insights
+- **Top Industries**: Fintech, Internet software/services, E-commerce, and AI.
 
-Geographic Hotspots: U.S. and China dominate in total valuation.
+- **Geographic Hotspots**: U.S. and China dominate in total valuation.
 
-Investor Influence: Most unicorns have 3+ investors.
+- **Investor Influence**: Most unicorns have 3+ investors.
 
-Growth Speed: Average unicorn age is 10 years; takes 7 years to hit $1B.
+- **Growth Speed**: Average unicorn age is 10 years; takes 7 years to hit $1B.
 
-🔧 Future Enhancements
-Integrate external data (e.g., GDP, market trends).
+## 🔧 Future Enhancements
+- Integrate external data (e.g., GDP, market trends).
 
-Build a Tableau/Power BI dashboard for visual trends.
+- Build a Tableau/Power BI dashboard for visual trends.
 
-Analyze funding rounds in-depth.
+- Analyze funding rounds in-depth.
 
-📜 License
-MIT License. See LICENSE for details.
 
 
