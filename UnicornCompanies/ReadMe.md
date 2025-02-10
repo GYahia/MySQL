@@ -18,12 +18,12 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
 ---
 
 ## 🛠️ Key Features
-### 1. **Data Cleaning & Preparation**
 - **Handling Missing Values**:  
- Identified and analyzed NULLs/empty cells in `City`, `Funding`, and `Select Investors`.
-  ```sql
-  SELECT * FROM Unicorn_Companies 
-  WHERE City = "" OR Funding NOT LIKE "$%" OR Select Investors LIKE "n/a";
+    Identified and analyzed NULLs/empty cells in `City`, `Funding`, and `Select Investors`.
+    ```sql
+    SELECT * FROM Unicorn_Companies 
+    WHERE City = "" OR Funding NOT LIKE "$%" OR Select Investors LIKE "n/a";
+    ```
 
 - **Valuation Standardization**:
 Converted Valuation (Example: "$4B" → "4") to numeric values.
