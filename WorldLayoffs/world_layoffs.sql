@@ -215,6 +215,22 @@ FROM layoffs_clean_v2
 GROUP BY YEAR(`date`)
 ORDER BY 2 DESC;
 
+
+-- This query calculates the total number of layoffs per month and sorts the results in descending order.
+WITH Rolling_Total AS (
+  SELECT 
+    SUBSTRING(date, 1, 7) AS `month`,
+    SUM(total_laid_off) AS monthly_total
+  FROM layoffs_clean_v2
+  GROUP BY `month`
+)
+SELECT 
+  `month`,
+  monthly_total,
+  SUM(monthly_total) OVER (ORDER BY `month`) AS cumulative_total
+FROM Rolling_Total;
+
+
 -- This query calculates the total number of layoffs per stage and sorts the results in descending order.
 SELECT stage,
     SUM(total_laid_off) AS total_laid_off
