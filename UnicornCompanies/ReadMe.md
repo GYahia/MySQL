@@ -26,6 +26,7 @@ A SQL-based analysis of companies valued at over $1 billion ("unicorns"). This p
     ```
 
 - **Valuation Standardization**:
+
     Converted Valuation (Example: "$4B" → "4") to numeric values.
     ```sql  
     UPDATE Unicorn_Companies
