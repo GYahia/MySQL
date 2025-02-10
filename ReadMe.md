@@ -17,9 +17,9 @@ This repository contains multiple data analysis projects, each focusing on diffe
 ### 1. **Analyses Included**
 | Project Name          | Description                                                                 | Tools Used          |
 |-----------------------|-----------------------------------------------------------------------------|---------------------|
-| [Project 1]           | Analysis of global layoffs trends (Example: companies, industries, countries).| MySQL, Tableau      |
-| [Project 2]           | [Brief description, e.g., sales performance, customer segmentation].        | Python (Pandas), SQL|
-| [Project 3]           | [Add your own...]                                                           | [Tools]             |
+| [WorldLayoffs]           | Analysis of global layoffs trends (Example: companies, industries, countries).| MySQL      |
+| UnicornCompanies           | Analysis per industry, country and funding of unicorn companies.| MySQL|
+| [Project 3]           | [...]                                                           | [Tools]             |
 
 ### 2. **Core Techniques**
 - **Data Cleaning**: 
