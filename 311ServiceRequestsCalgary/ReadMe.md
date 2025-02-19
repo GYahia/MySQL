@@ -4,18 +4,16 @@ This project involves the analysis of 311 service requests data for the city of 
 
 ---
 
-## Project Overview
+## 📊 Project Overview
 
-The goal of this project is to clean, analyze, and prepare the 311 service requests data for further analysis or visualization. The dataset includes:
+The goal of this project is to **clean**, **analyze**, and **prepare** the 311 service requests data for further analysis or visualization. The data contains information about service requests, including:
 
-- **Type of service**
-- **Agency responsible**
-- **Status of the request**
-- **Geographical information** (longitude and latitude)
+- Type of service
+- The agency responsible
+- Status of the request
+- Geographical information (longitude and latitude)
 
----
-
-## Key Steps
+### 🔍 Key Steps
 
 1. **Data Import**  
    The raw data was imported from a CSV file into a MySQL database.
@@ -31,15 +29,15 @@ The goal of this project is to clean, analyze, and prepare the 311 service reque
 
 ---
 
-## SQL Files
+## 📁 SQL Files
 
 ### 1. `311_services_requests_calgary - data_creation.sql`
 
-This file contains SQL code to:
+This file contains the SQL code to:
 
 - Create a new database (`311_service_requests`).
 - Define the schema for the `service_requests` table.
-- Load data from the CSV file into the `service_requests` table.
+- Load the data from the CSV file into the `service_requests` table.
 
 
 Format of the imported table:
@@ -61,10 +59,9 @@ Format of the imported table:
 | latitude            | double          |
 | point              | varchar(255)    |
 
-
 ### 2. `311_services_requests_calgary - data_cleaning.sql`
 
-This file contains SQL code to:
+This file contains the SQL code to:
 
 - Create a clean copy of the raw data table.
 - Standardize the `service_name` field to ensure consistent capitalization.
@@ -74,50 +71,48 @@ This file contains SQL code to:
 
 ---
 
-## Data Cleaning Steps
+## 🧹 Data Cleaning Steps
 
-### Standardization
+### 📏 Standardization
 
-- The `service_name` field was standardized to start with an uppercase letter.
+- The `service_name` field was standardized to ensure that all entries start with an uppercase letter.
 - Missing `comm_code` values were replaced with `comm_name` where applicable.
 
-### Handling Missing Data
+### 📉 Handling Missing Data
 
 - Rows with missing `comm_code`, `comm_name`, `longitude`, and `latitude` were removed.
-- Missing `updated_date` and `closed_date` values were filled using available data.
+- Missing `updated_date` and `closed_date` values were filled in using available data.
 
-### Removing Irrelevant Data
+### 🗑️ Removing Irrelevant Data
 
 - The `address` column was dropped as it contained no useful information.
-- Rows with status descriptions like "TO BE DELETED" and "Duplicate (Open)" were removed.
+- Rows with status descriptions like **"TO BE DELETED"** and **"Duplicate (Open)"** were removed.
+
+### ✅ Final Clean Data
+
+- The final cleaned data was exported to a CSV file: `service_requests_clean_v3.csv` for further analysis.
 
 ---
 
-## Final Clean Data
+## ⚙️ How to Use the Code
 
-The final cleaned data was exported to a CSV file: `service_requests_clean_v3.csv`
+### 1️⃣ Set Up MySQL
 
----
+- Ensure **MySQL** is installed and running on your machine.
+- Create a new database named `311_service_requests`.
 
-## How to Use the Code
+### 2️⃣ Run the SQL Files
 
-### Set Up MySQL
+- Execute the `311_services_requests_calgary - data_creation.sql` file to create the database and import the raw data.
+- Execute the `311_services_requests_calgary - data_cleaning.sql` file to clean and transform the data.
 
-1. Ensure MySQL is installed and running on your machine.
-2. Create a new database named `311_service_requests`.
+### 3️⃣ Export the Cleaned Data
 
-### Run the SQL Files
-
-1. Execute `311_services_requests_calgary - data_creation.sql` to create the database and import the raw data.
-2. Execute `311_services_requests_calgary - data_cleaning.sql` to clean and transform the data.
-
-### Export the Cleaned Data
-
-The final cleaned data will be exported to a CSV file: `service_requests_clean_v3.csv`
+- The final cleaned data will be exported to a CSV file: `service_requests_clean_v3.csv`.
 
 ---
 
-## Data Analysis
+## 📈 Data Analysis
 
 The cleaned data can now be used for further analysis, such as:
 
@@ -127,7 +122,12 @@ The cleaned data can now be used for further analysis, such as:
 
 ---
 
-## Dependencies
+## 📦 Dependencies
 
-- **MySQL Server 8.0 or higher**
-- **MySQL Workbench** (optional, for easier execution of SQL scripts)
+- **MySQL Server 8.0** or higher.
+- **MySQL Workbench** (optional, for easier execution of SQL scripts).
+
+---
+
+**Happy Analyzing!** 🚀
+
