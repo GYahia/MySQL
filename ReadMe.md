@@ -19,7 +19,7 @@ This repository contains multiple data analysis projects, each focusing on diffe
 |----------------------------|------------------------------------------------------------------------------------------|---------------------|
 | WorldLayoffs               | Analysis of global layoffs trends (Example: companies, industries, countries).           | MySQL               |
 | UnicornCompanies           | Analysis per industry, country and funding of unicorn companies.                         | MySQL               |
-| 311ServiceRequestsCalgary  | Temporal, Service Type Analyses and Geographical Distribution Visualization (n Progress) | Excel, MySQL         |
+| 311ServiceRequestsCalgary  | Temporal, Service Type Analyses and Geographical Distribution Visualization              | Excel, MySQL         |
 
 ### 2. **Core Techniques**
 - **Data Cleaning**: 
