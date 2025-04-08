@@ -82,17 +82,17 @@ This repository contains multiple data analysis projects, each focusing on diffe
               point,
               service_name,
               comm_name)
-SELECT comm_name,
+    SELECT comm_name,
        ROUND(AVG(response_time_days), 0) AS avg_response_time,
        (
               SELECT ROUND(AVG(response_time_days), 0)
               FROM UniqueRequests
        ) AS avg_overall,
        FROM UniqueRequests
-GROUP BY comm_name
-ORDER BY avg_response_time DESC;
-```
-```
+    GROUP BY comm_name
+    ORDER BY avg_response_time DESC;
+   ```
+
 ## 🔧 Future Enhancements
 - Add interactive dashboards (e.g., Tableau/Power BI).
 - Integrate Python scripts for automated data cleaning.
