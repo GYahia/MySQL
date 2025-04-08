@@ -1,133 +1,173 @@
 # 311 Service Requests Data Analysis - Calgary
 
-This project involves the analysis of 311 service requests data for the city of Calgary. The data was downloaded from the [Calgary Open Data Portal](https://data.calgary.ca/) and covers service requests up to **February 10, 2025**.
+This project involves the exploration and analysis of 311 service requests data for the city of Calgary. The data was downloaded from the [Calgary Open Data Portal](https://data.calgary.ca/) and covers service requests up to **February 10, 2025**.
 
 ---
 
 ## 📊 Project Overview
 
-The goal of this project is to **clean**, **analyze**, and **prepare** the 311 service requests data for further analysis or visualization. The data contains information about service requests, including:
+The goal of this project is to analyze 311 service requests data to uncover trends in service demand, efficiency, and geographical distribution. Key focus areas include:
 
-- Type of service
-- The agency responsible
-- Status of the request
-- Geographical information (longitude and latitude)
-
-### 🔍 Key Steps
-
-1. **Data Import**  
-   The raw data was imported from a CSV file into a MySQL database.
-
-2. **Data Cleaning**  
-   The data was cleaned to handle missing values, standardize fields, and remove duplicates.
-
-3. **Data Transformation**  
-   The cleaned data was further processed to ensure consistency and prepare it for analysis.
-
-4. **Data Export**  
-   The final cleaned data was exported to a CSV file for further use.
+- **Temporal patterns** (monthly, seasonal, yearly trends).
+- **Service request types** (most common services, recurring issues).
+- **Geographical hotspots** (communities with high request volumes).
+- **Agency performance** (response times, request handling efficiency).
 
 ---
 
-## 📁 SQL Files
+## 📁 Data Overview
 
-### 1. `311_services_requests_calgary - data_creation.sql`
+### Original Data Format
+The raw data was imported into MySQL with the following structure:
 
-This file contains the SQL code to:
-
-- Create a new database (`311_service_requests`).
-- Define the schema for the `service_requests` table.
-- Load the data from the CSV file into the `service_requests` table.
-
-
-Format of the imported table:
 | Field Name            | Data Type       |
 |-----------------------|----------------|
 | service_request_id    | varchar(255)    |
 | requested_date        | timestamp       |
-| updated_date         | timestamp       |
-| closed_date          | timestamp       |
-| status_description   | varchar(255)    |
-| source              | varchar(255)    |
-| service_name         | varchar(255)    |
-| agency_responsible   | varchar(255)    |
-| address             | varchar(255)    |
-| comm_code           | varchar(255)    |
-| comm_name           | varchar(255)    |
-| location_type       | varchar(255)    |
-| longitude           | double          |
-| latitude            | double          |
-| point              | varchar(255)    |
-
-### 2. `311_services_requests_calgary - data_cleaning.sql`
-
-This file contains the SQL code to:
-
-- Create a clean copy of the raw data table.
-- Standardize the `service_name` field to ensure consistent capitalization.
-- Handle missing values in `comm_code`, `comm_name`, `longitude`, and `latitude`.
-- Remove rows with missing or irrelevant data.
-- Export the cleaned data to a new CSV file.
+| updated_date          | timestamp       |
+| closed_date           | timestamp       |
+| status_description    | varchar(255)    |
+| source                | varchar(255)    |
+| service_name          | varchar(255)    |
+| agency_responsible    | varchar(255)    |
+| address               | varchar(255)    |
+| comm_code             | varchar(255)    |
+| comm_name             | varchar(255)    |
+| location_type         | varchar(255)    |
+| longitude             | double          |
+| latitude              | double          |
+| point                 | varchar(255)    |
 
 ---
 
 ## 🧹 Data Cleaning Steps
 
-### 📏 Standardization
+### Key Transformations Applied:
+1. **Created a Clean Copy**:  
+   - Raw data was copied to `service_requests_clean_v3` for cleaning.  
+2. **Standardized Fields**:  
+   - Capitalized the first letter of `service_name` entries (e.g., "cart management" → "Cart Management").  
+3. **Handled Missing Data**:  
+   - Removed **5.6% of rows** (378,196 rows) with missing `comm_code`, `comm_name`, or geospatial data (`longitude`, `latitude`, `point`).  
+4. **Dropped Irrelevant Columns**:  
+   - Removed `address` (100% empty) and `location_type` (non-critical for analysis).  
+5. **Filled Missing Dates**:  
+   - Used `closed_date` to fill missing `updated_date` and vice versa.  
+   - Removed 31 rows where both dates were missing.  
+6. **Filtered Invalid Statuses**:  
+   - Deleted entries with statuses `TO BE DELETED` and `Duplicate (Open)` (0.0013% of data).  
 
-- The `service_name` field was standardized to ensure that all entries start with an uppercase letter.
-- Missing `comm_code` values were replaced with `comm_name` where applicable.
+### Final Cleaned Dataset:
+- **Rows**: 6,263,716 (reduced from an initial 6,677,122).  
+- **Columns**:  
+  `service_request_id`, `requested_date`, `updated_date`, `closed_date`, `status_description`, `source`, `service_name`, `agency_responsible`, `comm_code`, `comm_name`, `longitude`, `latitude`, `point`.  
+- **Exported As**: `service_requests_clean_v3.csv`.
 
-### 📉 Handling Missing Data
+---
 
-- Rows with missing `comm_code`, `comm_name`, `longitude`, and `latitude` were removed.
-- Missing `updated_date` and `closed_date` values were filled in using available data.
+## 📈 Data Exploration Highlights
 
-### 🗑️ Removing Irrelevant Data
+### ⏳ **Temporal Analysis**
+- **Monthly Trends**:  
+  - **Busiest Months**: June (peak), followed by May, July, and August.  
+  - **Average Monthly Requests**: ~478,659 requests/year.  
+- **Daily Trends**:  
+  - **Highest Volume**: Midweek (Tuesday–Thursday).  
+  - **Lowest Volume**: Weekends (Saturday/Sunday).  
+- **Seasonal Trends**:  
+  - **Summer** (29.4% of total requests), **Spring** (25.3%), **Fall** (23.5%), **Winter** (21.9%).  
+  - **Top Seasonal Services**:  
+    - Winter: Roads & Bylaw Snow/Ice Control.  
+    - Summer: Property Tax Inquiries.  
 
-- The `address` column was dropped as it contained no useful information.
-- Rows with status descriptions like **"TO BE DELETED"** and **"Duplicate (Open)"** were removed.
+### 🚧 **Service Request Trends**
+- **Most Frequent Services**:  
+  1. **Cart Management** (1M+ requests).  
+  2. **Property Tax Account Inquiries** (~590K requests).  
+  3. **Roadway Maintenance** (~580K requests).  
+- **Resolution Metrics**:  
+  - **97%** of requests were marked "Closed".  
+  - **8%** took >30 days to resolve (*unresolved*).  
+  - **Longest Delays**: *FAC Inspections* and *Major Transit Projects* averaged **500+ days** for resolution.  
 
-### ✅ Final Clean Data
+### 🌍 **Geographical Analysis**
+- **Hotspot Communities**:  
+  1. **Downtown Commercial Core** (3,925 recurring requests).  
+  2. **Beltline** (3,826).  
+  3. **Bowness** (3,222).  
+- **Recurring Issues by Location**:  
+  - *Roads - Parking Signs* in **Beltline** (38 cases/year).  
+  - *Roads - Traffic Markings* in **Silverado** (31 cases/year).  
 
-- The final cleaned data was exported to a CSV file: `service_requests_clean_v3.csv` for further analysis.
+### ⚙️ **Service Efficiency Analysis**
+- **Top Agencies by Volume**:  
+  1. **Calgary Community Standards** (16.3% of requests).  
+  2. **Roads Department** (15%).  
+  3. **Building Services** (13.6%).  
+- **Slowest Response Times**:  
+  - **PD - Emergency Response**: ~100+ days average.  
+  - **TRAN - Green Line**: ~90+ days average.  
+- **Fastest Resolution**:  
+  - **Waste & Recycling Services**: ~7 days average.  
 
+---
+
+## 📁 SQL Files
+
+### 1. `311_services_requests_calgary - data_cleaning.sql`
+- **Purpose**: Clean raw data for analysis.  
+- **Output**: `service_requests_clean_v3.csv` (6.2M rows, 13 columns).  
+
+### 2. `311_services_requests_calgary - data_exploration.sql`
+- **Purpose**: Perform detailed analysis of trends and efficiency.  
+- **Key Queries**:  
+  - Temporal trends by month, day, and season.  
+  - Service type frequency and resolution times.  
+  - Geographical hotspots and recurring issues.  
+  - Agency performance metrics.  
+
+---
+## 📈 Key Insights
+1. Seasonality Matters: Summer and spring require additional staffing for high-demand services like Cart Management.
+
+2. Geographical Hotspots: Downtown and Beltline need proactive resource allocation.
+
+3. Efficiency Gaps: Agencies like Emergency Response require process optimization to reduce 100+ day response times.
 ---
 
 ## ⚙️ How to Use the Code
 
 ### 1️⃣ Set Up MySQL
-
-- Ensure **MySQL** is installed and running on your machine.
-- Create a new database named `311_service_requests`.
+1. Install **MySQL Server 8.0+**.  
+2. Create a database named `311_service_requests`.  
 
 ### 2️⃣ Run the SQL Files
+1. Execute `data_cleaning.sql` to clean the raw data.  
+2. Run `data_exploration.sql` to reproduce the analysis.  
 
-- Execute the `311_services_requests_calgary - data_creation.sql` file to create the database and import the raw data.
-- Execute the `311_services_requests_calgary - data_cleaning.sql` file to clean and transform the data.
+### 3️⃣ Outputs
+- Cleaned data: `service_requests_clean_v3.csv`.  
+- Key insights are embedded in SQL comments and result sets.  
 
-### 3️⃣ Export the Cleaned Data
 
-- The final cleaned data will be exported to a CSV file: `service_requests_clean_v3.csv`.
 
----
-
-## 📈 Data Analysis
-
-The cleaned data can now be used for further analysis, such as:
-
-- Identifying trends in service requests over time.
-- Analyzing the most common types of service requests.
-- Visualizing the geographical distribution of service requests.
 
 ---
 
 ## 📦 Dependencies
-
-- **MySQL Server 8.0** or higher.
-- **MySQL Workbench** (optional, for easier execution of SQL scripts).
+- **MySQL Server 8.0+**.  
+- **MySQL Workbench** (recommended for query execution).  
 
 ---
 
 **Happy Analyzing!** 🚀
+
+
+
+
+---
+
+
+
+
 
