@@ -19,7 +19,7 @@ This repository contains multiple data analysis projects, each focusing on diffe
 |----------------------------|------------------------------------------------------------------------------------------|---------------------|
 | WorldLayoffs               | Analysis of global layoffs trends (Example: companies, industries, countries).           | MySQL               |
 | UnicornCompanies           | Analysis per industry, country and funding of unicorn companies.                         | MySQL               |
-| 311ServiceRequestsCalgary  | Temporal, Service Type Analyses and Geographical Distribution Visualization (n Progress) | Excel, MySQL         |
+| 311ServiceRequestsCalgary  | Temporal, Service Type Analyses and Geographical Distribution Visualization              | Excel, MySQL         |
 
 ### 2. **Core Techniques**
 - **Data Cleaning**: 
@@ -67,6 +67,31 @@ This repository contains multiple data analysis projects, each focusing on diffe
     GROUP BY YEAR(date)
     ORDER BY year;
     ```
+4. Average Reponse Time per Community after reduction to unique requests
+    ```sql
+    WITH UniqueRequests AS (
+       SELECT DISTINCT requested_date,
+              closed_date,
+              point,
+              service_name,
+              comm_name,
+              MIN(response_time_days) AS response_time_days
+       FROM service_requests_clean_v3
+       GROUP BY requested_date,
+              closed_date,
+              point,
+              service_name,
+              comm_name)
+    SELECT comm_name,
+       ROUND(AVG(response_time_days), 0) AS avg_response_time,
+       (
+              SELECT ROUND(AVG(response_time_days), 0)
+              FROM UniqueRequests
+       ) AS avg_overall,
+       FROM UniqueRequests
+    GROUP BY comm_name
+    ORDER BY avg_response_time DESC;
+   ```
 
 ## 🔧 Future Enhancements
 - Add interactive dashboards (e.g., Tableau/Power BI).
