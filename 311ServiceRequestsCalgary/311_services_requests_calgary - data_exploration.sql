@@ -616,3 +616,18 @@ GROUP BY agency_responsible
 ORDER BY avg_response_time_days DESC;
 
 /* 3 agencies have over 100 days in avg_response_time: PD - Emergency Response, PICS - Collaboration, Analyticsand Innovation and Tran - Green Line*/
+
+SHOW COLUMNS FROM service_requests_clean_v3;
+
+
+SELECT 'service_request_id', 'requested_date', 'updated_date', 'closed_date', 'status_description', 'source', 'service_name', 'agency_responsible', 'comm_code', 'comm_name', 'longitude', 'latitude', 'point','season', 'month_requested', 'response_time_days'
+UNION ALL
+SELECT *
+FROM service_requests_clean_v3
+INTO OUTFILE 'C:/USERS/ghass/Documents/Data Analysis/GitHub/MySQL/311ServiceRequestsCalgary/service_requests_clean_v3_power_bi.csv'
+CHARACTER SET utf8
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+ESCAPED BY ''
+LINES TERMINATED BY '\n';
+
