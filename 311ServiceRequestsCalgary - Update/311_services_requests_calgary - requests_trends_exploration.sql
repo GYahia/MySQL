@@ -687,3 +687,65 @@ GREENVIEW INDUSTRIAL PARK	WATR - Industrial Monitoring Inquiry	164
 WOODBINE	Bylaw - Tree - Shrub Infraction	143
 GLENDALE	Bylaw - Tree - Shrub Infraction	131
 */
+
+-- 30-day recurrence rate by year (citywide)
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+reoccurring_firsts AS (
+  SELECT
+    f.service_request_id,
+    f.year_requested
+  FROM firsts f
+  WHERE EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr2
+    WHERE sr2.point = f.point
+      AND sr2.service_name = f.service_name
+      AND sr2.service_request_id <> f.service_request_id
+      AND sr2.requested_date > f.requested_date
+      AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+  )
+)
+SELECT
+  f.year_requested,
+  COUNT(*) AS first_occurrences,
+  COUNT(r.service_request_id) AS first_occurrences_with_30d_repeat,
+  ROUND(COUNT(r.service_request_id) / COUNT(*) * 100, 2) AS recurrence_rate_pct
+FROM firsts f
+LEFT JOIN reoccurring_firsts r
+  ON r.service_request_id = f.service_request_id
+GROUP BY f.year_requested
+ORDER BY f.year_requested;
+
+/*
+2012	77260	35686	46.19
+2013	75909	34179	45.03
+2014	75648	33996	44.94
+2015	78998	34406	43.55
+2016	88933	38620	43.43
+2017	94563	41331	43.71
+2018	94016	40939	43.54
+2019	100056	44525	44.50
+2020	103864	47007	45.26
+2021	95545	40523	42.41
+2022	100354	41758	41.61
+2023	117034	51710	44.18
+2024	103134	44398	43.05
+2025	99449	42864	43.10
