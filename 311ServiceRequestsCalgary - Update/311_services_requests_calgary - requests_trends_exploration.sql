@@ -749,3 +749,116 @@ ORDER BY f.year_requested;
 2023	117034	51710	44.18
 2024	103134	44398	43.05
 2025	99449	42864	43.10
+*/
+
+-- Top 3 services per year (based on # of first occurrences that reoccur within 30 days)
+-- Includes counts + rate
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.year_requested,
+    f.service_name,
+    f.service_request_id,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+service_year_rollup AS (
+  SELECT
+    year_requested,
+    service_name,
+    COUNT(*) AS first_occurrences,
+    SUM(reoccurs_30d) AS first_occurrences_with_30d_repeat,
+    ROUND(SUM(reoccurs_30d) / COUNT(*) * 100, 2) AS recurrence_rate_pct
+  FROM firsts_scored
+  GROUP BY year_requested, service_name
+),
+ranked AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (
+      PARTITION BY year_requested
+      ORDER BY first_occurrences_with_30d_repeat DESC
+    ) AS rn
+  FROM service_year_rollup
+)
+SELECT
+  year_requested,
+  service_name,
+  first_occurrences,
+  first_occurrences_with_30d_repeat,
+  recurrence_rate_pct
+FROM ranked
+WHERE rn <= 3
+ORDER BY year_requested, first_occurrences_with_30d_repeat DESC;
+
+/*
+2012	CBS Inspection - Plumbing	756	534	70.63
+2012	CBS - RIM - Property Research	790	533	67.47
+2012	Z - Roads - Roadway Maintenance	785	506	64.46
+2013	CBS - RIM - Property Research	789	471	59.70
+2013	CBS Inspection - Plumbing	662	453	68.43
+2013	Corporate - Graffiti Concerns	640	450	70.31
+2014	CBS - RIM - Property Research	776	503	64.82
+2014	CBS Inspection - Plumbing	664	487	73.34
+2014	Roads - Dead Animal Pick-Up	782	481	61.51
+2015	Roads - Roadway Maintenance	831	508	61.13
+2015	Roads - Debris on Street/Sidewalk/Boulevard	825	507	61.45
+2015	CBS - RIM - Property Research	822	496	60.34
+2016	Roads - Traffic or Pedestrian Light Repair	1204	615	51.08
+2016	Roads - Roadway Maintenance	1000	610	61.00
+2016	Roads - Debris on Street/Sidewalk/Boulevard	1016	590	58.07
+2017	Roads - Traffic or Pedestrian Light Repair	1351	709	52.48
+2017	Roads - Roadway Maintenance	1055	647	61.33
+2017	Roads - Debris on Street/Sidewalk/Boulevard	995	588	59.10
+2018	Roads - Traffic or Pedestrian Light Repair	1252	687	54.87
+2018	Roads - Roadway Maintenance	1092	684	62.64
+2018	Roads - Debris on Street/Sidewalk/Boulevard	1041	592	56.87
+2019	Roads - Traffic or Pedestrian Light Repair	1404	828	58.97
+2019	Roads - Pothole Maintenance	1325	748	56.45
+2019	Roads - Debris on Street/Sidewalk/Boulevard	1095	665	60.73
+2020	CFD - Operation Birthdays	2864	2845	99.34
+2020	Roads - Pothole Maintenance	1237	774	62.57
+2020	Roads - Snow and Ice Control	1010	757	74.95
+2021	Bylaw - Tree - Shrub Infraction	1209	619	51.20
+2021	Roads - Signs - Missing - Damaged	1515	612	40.40
+2021	Corporate - Graffiti Concerns	1045	597	57.13
+2022	Bylaw - Snow and Ice on Sidewalk	1279	974	76.15
+2022	Bylaw - Tree - Shrub Infraction	1573	734	46.66
+2022	Roads - Signs - Missing - Damaged	1698	719	42.34
+2023	WRS - Compost - Green Cart	1216	895	73.60
+2023	Roads - Signs - Missing - Damaged	1962	877	44.70
+2023	Roads - Pothole Maintenance	1456	869	59.68
+2024	Roads - Signs - Missing - Damaged	1862	1018	54.67
+2024	DBBS - RIM - Property Research	1414	738	52.19
+2024	Roads - Pothole Maintenance	1142	664	58.14
+2025	Bylaw - Snow and Ice on Sidewalk	1073	772	71.95
+2025	Roads - Signs - Missing - Damaged	1221	725	59.38
+2025	Roads - Traffic or Pedestrian Light Repair	1287	689	53.54
+ */
+
