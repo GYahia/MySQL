@@ -862,3 +862,58 @@ ORDER BY year_requested, first_occurrences_with_30d_repeat DESC;
 2025	Roads - Traffic or Pedestrian Light Repair	1287	689	53.54
  */
 
+-- Top services overall (by # of first occurrences that reoccur within 30 days)
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.point,
+    sr1.requested_date
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.service_name,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+)
+SELECT
+  service_name,
+  COUNT(*) AS first_occurrences,
+  SUM(reoccurs_30d) AS first_occurrences_with_30d_repeat,
+  ROUND(SUM(reoccurs_30d) / COUNT(*) * 100, 2) AS recurrence_rate_pct
+FROM firsts_scored
+GROUP BY service_name
+ORDER BY first_occurrences_with_30d_repeat DESC
+LIMIT 10;
+
+/*
+Roads - Signs - Missing - Damaged	14851	7616	51.28
+Roads - Debris on Street/Sidewalk/Boulevard	13188	7357	55.79
+Corporate - Graffiti Concerns	12025	7164	59.58
+Roads - Traffic or Pedestrian Light Repair	13893	7147	51.44
+Roads - Roadway Maintenance	13065	7086	54.24
+Roads - Dead Animal Pick-Up	12091	6735	55.70
+Roads - Snow and Ice Control	9264	6452	69.65
+Bylaw - Snow and Ice on Sidewalk	8450	6403	75.78
+AS - Animal at Large	10880	6378	58.62
+311 Contact Us	9212	6155	66.82
+*/
