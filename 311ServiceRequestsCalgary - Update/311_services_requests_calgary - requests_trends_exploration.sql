@@ -1,5 +1,5 @@
 -- Active: 1736824156068@@localhost@3306@311_service_requests
--- Data downloaded from Calgary website for the date of 10 Feb 2025
+-- Data downloaded from Calgary website for the date of 17 Jan 2026
 -- Source: https://data.calgary.ca/Services-and-Amenities/311-Service-Requests/iahh-g8bj/about_data
 -- Use the newly created database
 USE 311_service_requests;
