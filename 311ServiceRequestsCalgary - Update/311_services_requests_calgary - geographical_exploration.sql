@@ -16,8 +16,7 @@ SHOW COLUMNS FROM service_requests_clean_v3;
 -- Using Table "service_requests_analysis"
 ----------------------------------------------------------------------------------
 
--- Top 3 service_name x comm_name overall
--- (by # of first occurrences that reoccur within 30 days)
+-- Which combinations of service type + community have the most issues that come back within 30 days?
 
 WITH firsts AS (
   SELECT
@@ -61,4 +60,18 @@ SELECT
 FROM firsts_scored
 GROUP BY comm_name, service_name
 ORDER BY first_occurrences_with_30d_repeat DESC
-LIMIT 3;
+LIMIT 10;
+
+/*
+GREENVIEW INDUSTRIAL PARK	WATR - Industrial Monitoring Inquiry	195	164	84.10
+WOODBINE					Bylaw - Tree - Shrub Infraction	180	143	79.44
+GLENDALE					Bylaw - Tree - Shrub Infraction	161	131	81.37
+WILLOW PARK					Bylaw - Tree - Shrub Infraction	150	124	82.67
+THORNCLIFFE					Bylaw - Tree - Shrub Infraction	140	102	72.86
+AUBURN BAY					CFD - Operation Birthdays	100	100	100.00
+MAHOGANY					CFD - Operation Birthdays	94	94	100.00
+BOWNESS						WATS - Water Pressure Issues	122	92	75.41
+BOWNESS						WATS - Water Outage	111	90	81.08
+VALLEY RIDGE				WATS - Water Outage	110	87	79.09
+*/
+
