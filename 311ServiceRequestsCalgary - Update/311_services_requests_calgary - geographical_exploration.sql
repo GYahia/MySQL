@@ -338,6 +338,50 @@ POINT (-114.112451127993 51.17108535645)	916	317821	571942	55.57
 POINT (-113.92785764419702 51.044981778175)	915	318736	571942	55.73
 */
 
+-- Geographic hotspot grid
+
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.comm_name,
+    sr1.point,
+    sr1.requested_date
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_with_repeat AS (
+  SELECT
+    f.comm_name
+  FROM firsts f
+  WHERE EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr2
+    WHERE sr2.point = f.point
+      AND sr2.service_name = f.service_name
+      AND sr2.service_request_id <> f.service_request_id
+      AND sr2.requested_date > f.requested_date
+      AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+  )
+)
+SELECT
+  comm_name,
+  COUNT(*) AS recurring_first_occurrences
+FROM firsts_with_repeat
+GROUP BY comm_name
+ORDER BY recurring_first_occurrences DESC
+LIMIT 100;
+
+
 
 
 
