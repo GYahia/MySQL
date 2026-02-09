@@ -75,3 +75,60 @@ ORDER BY year_requested;
 2024	103134	58736	56.95
 2025	99449	56585	56.90
 */
+
+-- Stability of recurrence rates by service over time
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.service_name,
+    f.year_requested,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+yearly_rates AS (
+  SELECT
+    service_name,
+    year_requested,
+    COUNT(*) AS first_occurrences,
+    SUM(reoccurs_30d) AS recurring_first_occurrences,
+    SUM(reoccurs_30d) / COUNT(*) AS recurrence_rate
+  FROM firsts_scored
+  GROUP BY service_name, year_requested
+)
+SELECT
+  service_name,
+  ROUND(AVG(recurrence_rate) * 100, 2) AS avg_recurrence_rate_pct,
+  ROUND(STDDEV_POP(recurrence_rate) * 100, 2) AS stddev_recurrence_rate_pct,
+  ROUND(MAX(recurrence_rate) * 100, 2) AS max_rate_pct,
+  ROUND(MIN(recurrence_rate) * 100, 2) AS min_rate_pct,
+  ROUND(MAX(recurrence_rate) / NULLIF(MIN(recurrence_rate), 0), 2) AS max_min_ratio
+FROM yearly_rates
+GROUP BY service_name
+ORDER BY stddev_recurrence_rate_pct DESC
+LIMIT 20;
