@@ -132,3 +132,26 @@ FROM yearly_rates
 GROUP BY service_name
 ORDER BY stddev_recurrence_rate_pct DESC
 LIMIT 20;
+
+/*
+CPB - CPB and Office of Land Servicing & Housing Projects	50.00	50.0	100.00	0.00	
+Z - Roads - Traffic Camera Inquiry	51.62	48.38	100.00	3.23	30.96
+Partnerships - Employee Complaint - Compliment	33.33	47.14	100.00	0.00	
+RSP - Southland Leisure Centre Inquiry	66.67	47.14	100.00	0.00	
+Z - CNS - CHAMPS Inquiry	35.56	45.65	100.00	0.00	
+REC - Pool - Canyon Meadows	54.33	44.05	100.00	0.00	
+REC - Pool - Sir Winston Churchill	55.33	43.21	100.00	0.00	
+CFD - Inspection - Windshield Washer Dispenser - FHB	42.86	42.86	85.71	0.00	
+PSD - Major Transit Projects Inquiry	26.14	42.68	100.00	0.00	
+REC - Pool - Bob Bahan	58.33	39.38	100.00	0.00	
+PDA - Rapid Damage Assessment	22.22	39.13	100.00	0.00	
+REC - Pool - Killarney	43.89	37.88	100.00	0.00	
+REC - Pool - Foothills	71.97	37.65	100.00	0.00	
+REC - Pool - Thornhill	43.18	37.31	100.00	0.00	
+WRS - Landfill - Operations	16.67	37.27	100.00	0.00	
+Roads - Streetlight - Specialty and Bridge Light Maintenance	41.43	36.59	100.00	0.00	
+DBBS Inspection - Electrical	29.50	36.27	78.91	0.00	
+DBBS Inspection - Residential Improvement Project - RIP	49.71	36.0	84.10	0.00	
+CED - Filming and Drone Activities (Behind The Scenes)	39.60	35.56	100.00	13.33	7.50
+PSD - Major Road Projects Inquiry	37.50	35.36	100.00	0.00	
+*/
