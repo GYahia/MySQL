@@ -155,3 +155,88 @@ DBBS Inspection - Residential Improvement Project - RIP	49.71	36.0	84.10	0.00
 CED - Filming and Drone Activities (Behind The Scenes)	39.60	35.56	100.00	13.33	7.50
 PSD - Major Road Projects Inquiry	37.50	35.36	100.00	0.00	
 */
+
+-- Trend direction detection for recurrence rates
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.service_name,
+    f.year_requested,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+yearly_rates AS (
+  SELECT
+    service_name,
+    year_requested,
+    SUM(reoccurs_30d) / COUNT(*) AS recurrence_rate
+  FROM firsts_scored
+  GROUP BY service_name, year_requested
+),
+first_last_year AS (
+  SELECT
+    service_name,
+    MIN(year_requested) AS first_year,
+    MAX(year_requested) AS last_year
+  FROM yearly_rates
+  GROUP BY service_name
+),
+trend_base AS (
+  SELECT
+    f.service_name,
+    y1.recurrence_rate AS first_year_rate,
+    y2.recurrence_rate AS last_year_rate
+  FROM first_last_year f
+  JOIN yearly_rates y1
+    ON y1.service_name = f.service_name
+   AND y1.year_requested = f.first_year
+  JOIN yearly_rates y2
+    ON y2.service_name = f.service_name
+   AND y2.year_requested = f.last_year
+)
+SELECT
+  service_name,
+  ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+  ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+  ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change,
+  CASE
+    WHEN last_year_rate < first_year_rate - 0.02 THEN 'Improving'
+    WHEN last_year_rate > first_year_rate + 0.02 THEN 'Worsening'
+    ELSE 'Stable'
+  END AS trend_direction
+FROM trend_base
+ORDER BY pct_point_change DESC;
+
+/*
+WRS - Landfill - Operations	0.00	100.00	100.00	Worsening
+Roads - Streetlight - Specialty and Bridge Light Maintenance	0.00	100.00	100.00	Worsening
+Z - CNS - CHAMPS Inquiry	0.00	100.00	100.00	Worsening
+Z - Roads - Traffic Camera Inquiry	3.23	100.00	96.77	Worsening
+REC - Mobile Skateparks / Skateboard Programs	13.33	100.00	86.67	Worsening
+*/
