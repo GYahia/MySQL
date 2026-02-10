@@ -220,7 +220,7 @@ trend_base AS (
     ON y2.service_name = f.service_name
    AND y2.year_requested = f.last_year
 )
-SELECT
+(SELECT
   service_name,
   ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
   ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
@@ -231,7 +231,20 @@ SELECT
     ELSE 'Stable'
   END AS trend_direction
 FROM trend_base
-ORDER BY pct_point_change DESC;
+ORDER BY pct_point_change DESC LIMIT 10)
+UNION ALL
+(SELECT
+  service_name,
+  ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+  ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+  ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change,
+  CASE
+    WHEN last_year_rate < first_year_rate - 0.02 THEN 'Improving'
+    WHEN last_year_rate > first_year_rate + 0.02 THEN 'Worsening'
+    ELSE 'Stable'
+  END AS trend_direction
+FROM trend_base
+ORDER BY pct_point_change ASC LIMIT 10);
 
 /*
 WRS - Landfill - Operations	0.00	100.00	100.00	Worsening
@@ -239,4 +252,133 @@ Roads - Streetlight - Specialty and Bridge Light Maintenance	0.00	100.00	100.00	
 Z - CNS - CHAMPS Inquiry	0.00	100.00	100.00	Worsening
 Z - Roads - Traffic Camera Inquiry	3.23	100.00	96.77	Worsening
 REC - Mobile Skateparks / Skateboard Programs	13.33	100.00	86.67	Worsening
+*/
+
+-- Trend direction by community x service
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.comm_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.year_requested,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+yearly_rates AS (
+  SELECT
+    comm_name,
+    service_name,
+    year_requested,
+    COUNT(*) AS first_occurrences,
+    SUM(reoccurs_30d) / COUNT(*) AS recurrence_rate
+  FROM firsts_scored
+  GROUP BY comm_name, service_name, year_requested
+),
+first_last_year AS (
+  SELECT
+    comm_name,
+    service_name,
+    MIN(year_requested) AS first_year,
+    MAX(year_requested) AS last_year,
+    SUM(first_occurrences) AS total_first_occurrences_all_years
+  FROM yearly_rates
+  GROUP BY comm_name, service_name
+),
+trend_base AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.total_first_occurrences_all_years,
+    y1.recurrence_rate AS first_year_rate,
+    y2.recurrence_rate AS last_year_rate
+  FROM first_last_year f
+  JOIN yearly_rates y1
+    ON y1.comm_name = f.comm_name
+   AND y1.service_name = f.service_name
+   AND y1.year_requested = f.first_year
+  JOIN yearly_rates y2
+    ON y2.comm_name = f.comm_name
+   AND y2.service_name = f.service_name
+   AND y2.year_requested = f.last_year
+)
+(SELECT
+  comm_name,
+  service_name,
+  total_first_occurrences_all_years,
+  ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+  ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+  ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change,
+  CASE
+    WHEN last_year_rate < first_year_rate - 0.02 THEN 'Improving'
+    WHEN last_year_rate > first_year_rate + 0.02 THEN 'Worsening'
+    ELSE 'Stable'
+  END AS trend_direction
+FROM trend_base
+WHERE total_first_occurrences_all_years >= 50 -- to reduce noisy low-volume combos
+ORDER BY pct_point_change DESC, total_first_occurrences_all_years DESC LIMIT 10)
+UNION ALL
+(SELECT
+  comm_name,
+  service_name,
+  total_first_occurrences_all_years,
+  ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+  ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+  ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change,
+  CASE
+    WHEN last_year_rate < first_year_rate - 0.02 THEN 'Improving'
+    WHEN last_year_rate > first_year_rate + 0.02 THEN 'Worsening'
+    ELSE 'Stable'
+  END AS trend_direction
+FROM trend_base
+WHERE total_first_occurrences_all_years >= 50 -- to reduce noisy low-volume combos
+ORDER BY pct_point_change ASC, total_first_occurrences_all_years ASC LIMIT 10);
+
+/*
+RICHMOND	Roads - Signs - Traffic and Roadmarking	103	0.00	100.00	100.00	Worsening
+MAHOGANY	Roads - Signs - Traffic and Roadmarking	100	0.00	100.00	100.00	Worsening
+WINDSOR PARK	Roads - Signs - Parking	81	0.00	100.00	100.00	Worsening
+SETON	Roads - Signs - Traffic and Roadmarking	78	0.00	100.00	100.00	Worsening
+HAWKWOOD	Roads - Sidewalk - Curb and Gutter Repair	77	0.00	100.00	100.00	Worsening
+MARLBOROUGH PARK	Roads - Signs - Parking	75	0.00	100.00	100.00	Worsening
+PARKDALE	WATS - Water Pressure Issues	75	0.00	100.00	100.00	Worsening
+APPLEWOOD PARK	Roads - Dead Animal Pick-Up	74	0.00	100.00	100.00	Worsening
+LINCOLN PARK	Roads - Traffic or Pedestrian Light Repair	74	0.00	100.00	100.00	Worsening
+MILLRISE	Roads - Debris on Street/Sidewalk/Boulevard	71	0.00	100.00	100.00	Worsening
+WINSTON HEIGHTS/MOUNTVIEW	Law - Risk Management and Claims	50	100.00	0.00	-100.00	Improving
+MOUNT PLEASANT	WATS - Cross Connection Inquiries	50	100.00	0.00	-100.00	Improving
+FAIRVIEW INDUSTRIAL	CBS - RIM - Property Research	50	100.00	0.00	-100.00	Improving
+OAKRIDGE	AS - Lost and Found Animal	50	100.00	0.00	-100.00	Improving
+COLLINGWOOD	WATS - Water Outage	51	100.00	0.00	-100.00	Improving
+GREENVIEW INDUSTRIAL PARK	CBS - RIM - Property Research	51	100.00	0.00	-100.00	Improving
+MISSION	AS - Pick Up Stray	51	100.00	0.00	-100.00	Improving
+DEER RIDGE	WATS - Water Off-On Appointment	52	100.00	0.00	-100.00	Improving
+HAWKWOOD	AS - Pick Up Stray	52	100.00	0.00	-100.00	Improving
+HAMPTONS	Roads - Traffic Signal Timing Inquiry	52	100.00	0.00	-100.00	Improving
 */
