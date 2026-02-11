@@ -247,11 +247,26 @@ FROM trend_base
 ORDER BY pct_point_change ASC LIMIT 10);
 
 /*
-WRS - Landfill - Operations	0.00	100.00	100.00	Worsening
 Roads - Streetlight - Specialty and Bridge Light Maintenance	0.00	100.00	100.00	Worsening
+WRS - Landfill - Operations	0.00	100.00	100.00	Worsening
 Z - CNS - CHAMPS Inquiry	0.00	100.00	100.00	Worsening
 Z - Roads - Traffic Camera Inquiry	3.23	100.00	96.77	Worsening
 REC - Mobile Skateparks / Skateboard Programs	13.33	100.00	86.67	Worsening
+Roads - Street Cleaning Annual Program	0.00	74.38	74.38	Worsening
+311 Contact Us	0.00	69.64	69.64	Worsening
+CED - Filming and Drone Activities (Behind The Scenes)	30.77	100.00	69.23	Worsening
+DBBS Inspection - Electrical	0.00	68.58	68.58	Worsening
+RSP - Subsidized Programs - Fair Entry	0.00	65.10	65.10	Worsening
+Partnerships - Employee Complaint - Compliment	100.00	0.00	-100.00	Improving
+Customer Service & Communications - General Concerns	100.00	0.00	-100.00	Improving
+CPB - CPB and Office of Land Servicing & Housing Projects	100.00	0.00	-100.00	Improving
+REC - Pool - Canyon Meadows	100.00	0.00	-100.00	Improving
+REC - Pool - Thornhill	100.00	0.00	-100.00	Improving
+PSD - Major Transit Projects Inquiry	100.00	4.55	-95.45	Improving
+PDA - Rapid Damage Assessment	100.00	11.11	-88.89	Improving
+CFD - Inspection - Windshield Washer Dispenser - FHB	85.71	0.00	-85.71	Improving
+REC - Southland Leisure Centre Inquiry	100.00	25.00	-75.00	Improving
+Roads - E-Scooter	100.00	28.57	-71.43	Improving
 */
 
 -- Trend direction by community x service
