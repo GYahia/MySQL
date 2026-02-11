@@ -269,6 +269,115 @@ REC - Southland Leisure Centre Inquiry	100.00	25.00	-75.00	Improving
 Roads - E-Scooter	100.00	28.57	-71.43	Improving
 */
 
+-- Query 13: Top 3 worsening services per community
+-- "Worsening" = last_year_rate - first_year_rate is positive and meaningful
+-- Filter out low-volume community/service combos to reduce noise.
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.comm_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.year_requested,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+yearly_rates AS (
+  SELECT
+    comm_name,
+    service_name,
+    year_requested,
+    COUNT(*) AS first_occurrences,
+    SUM(reoccurs_30d) / COUNT(*) AS recurrence_rate
+  FROM firsts_scored
+  GROUP BY comm_name, service_name, year_requested
+),
+first_last_year AS (
+  SELECT
+    comm_name,
+    service_name,
+    MIN(year_requested) AS first_year,
+    MAX(year_requested) AS last_year,
+    SUM(first_occurrences) AS total_first_occurrences_all_years
+  FROM yearly_rates
+  GROUP BY comm_name, service_name
+),
+trend_base AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.total_first_occurrences_all_years,
+    y1.recurrence_rate AS first_year_rate,
+    y2.recurrence_rate AS last_year_rate
+  FROM first_last_year f
+  JOIN yearly_rates y1
+    ON y1.comm_name = f.comm_name
+   AND y1.service_name = f.service_name
+   AND y1.year_requested = f.first_year
+  JOIN yearly_rates y2
+    ON y2.comm_name = f.comm_name
+   AND y2.service_name = f.service_name
+   AND y2.year_requested = f.last_year
+),
+worsening AS (
+  SELECT
+    comm_name,
+    service_name,
+    total_first_occurrences_all_years,
+    ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+    ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+    ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change
+  FROM trend_base
+  WHERE total_first_occurrences_all_years >= 50
+    AND (last_year_rate - first_year_rate) > 0.02  -- only meaningful worsening
+),
+ranked AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (
+      PARTITION BY comm_name
+      ORDER BY pct_point_change DESC, total_first_occurrences_all_years DESC, service_name
+    ) AS rn
+  FROM worsening
+)
+SELECT
+  comm_name,
+  service_name,
+  total_first_occurrences_all_years,
+  first_year_rate_pct,
+  last_year_rate_pct,
+  pct_point_change
+FROM ranked
+WHERE rn <= 5
+ORDER BY comm_name, pct_point_change DESC;
+
+
 -- Trend direction by community x service
 
 WITH firsts AS (
@@ -397,3 +506,111 @@ DEER RIDGE	WATS - Water Off-On Appointment	52	100.00	0.00	-100.00	Improving
 HAWKWOOD	AS - Pick Up Stray	52	100.00	0.00	-100.00	Improving
 HAMPTONS	Roads - Traffic Signal Timing Inquiry	52	100.00	0.00	-100.00	Improving
 */
+
+-- Top 5 worsening services per community
+-- "Worsening" = last_year_rate - first_year_rate is positive and meaningful
+-- Filter out low-volume community/service combos to reduce noise.
+
+WITH firsts AS (
+  SELECT
+    sr1.service_request_id,
+    sr1.service_name,
+    sr1.comm_name,
+    sr1.point,
+    sr1.requested_date,
+    YEAR(sr1.requested_date) AS year_requested
+  FROM service_requests_analysis sr1
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM service_requests_analysis sr0
+    WHERE sr0.point = sr1.point
+      AND sr0.service_name = sr1.service_name
+      AND sr0.service_request_id <> sr1.service_request_id
+      AND sr0.requested_date < sr1.requested_date
+      AND sr0.requested_date >= sr1.requested_date - INTERVAL 30 DAY
+  )
+),
+firsts_scored AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.year_requested,
+    CASE WHEN EXISTS (
+      SELECT 1
+      FROM service_requests_analysis sr2
+      WHERE sr2.point = f.point
+        AND sr2.service_name = f.service_name
+        AND sr2.service_request_id <> f.service_request_id
+        AND sr2.requested_date > f.requested_date
+        AND sr2.requested_date <= f.requested_date + INTERVAL 30 DAY
+    ) THEN 1 ELSE 0 END AS reoccurs_30d
+  FROM firsts f
+),
+yearly_rates AS (
+  SELECT
+    comm_name,
+    service_name,
+    year_requested,
+    COUNT(*) AS first_occurrences,
+    SUM(reoccurs_30d) / COUNT(*) AS recurrence_rate
+  FROM firsts_scored
+  GROUP BY comm_name, service_name, year_requested
+),
+first_last_year AS (
+  SELECT
+    comm_name,
+    service_name,
+    MIN(year_requested) AS first_year,
+    MAX(year_requested) AS last_year,
+    SUM(first_occurrences) AS total_first_occurrences_all_years
+  FROM yearly_rates
+  GROUP BY comm_name, service_name
+),
+trend_base AS (
+  SELECT
+    f.comm_name,
+    f.service_name,
+    f.total_first_occurrences_all_years,
+    y1.recurrence_rate AS first_year_rate,
+    y2.recurrence_rate AS last_year_rate
+  FROM first_last_year f
+  JOIN yearly_rates y1
+    ON y1.comm_name = f.comm_name
+   AND y1.service_name = f.service_name
+   AND y1.year_requested = f.first_year
+  JOIN yearly_rates y2
+    ON y2.comm_name = f.comm_name
+   AND y2.service_name = f.service_name
+   AND y2.year_requested = f.last_year
+),
+worsening AS (
+  SELECT
+    comm_name,
+    service_name,
+    total_first_occurrences_all_years,
+    ROUND(first_year_rate * 100, 2) AS first_year_rate_pct,
+    ROUND(last_year_rate * 100, 2) AS last_year_rate_pct,
+    ROUND((last_year_rate - first_year_rate) * 100, 2) AS pct_point_change
+  FROM trend_base
+  WHERE total_first_occurrences_all_years >= 50
+    AND (last_year_rate - first_year_rate) > 0.02  
+),
+ranked AS (
+  SELECT
+    *,
+    ROW_NUMBER() OVER (
+      PARTITION BY comm_name
+      ORDER BY pct_point_change DESC, total_first_occurrences_all_years DESC, service_name
+    ) AS rn
+  FROM worsening
+)
+SELECT
+  comm_name,
+  service_name,
+  total_first_occurrences_all_years,
+  first_year_rate_pct,
+  last_year_rate_pct,
+  pct_point_change
+FROM ranked
+WHERE rn <= 5
+ORDER BY comm_name, pct_point_change DESC;
