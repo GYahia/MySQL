@@ -66,6 +66,26 @@ SQL was chosen because it:
 
 A dedicated SQL database (`311_service_requests`) was created to store and analyze the dataset.
 
+The raw data was imported into MySQL with the following structure:
+
+| Field Name            | Data Type       |
+|-----------------------|----------------|
+| service_request_id    | varchar(255)    |
+| requested_date        | timestamp       |
+| updated_date          | timestamp       |
+| closed_date           | timestamp       |
+| status_description    | varchar(255)    |
+| source                | varchar(255)    |
+| service_name          | varchar(255)    |
+| agency_responsible    | varchar(255)    |
+| address               | varchar(255)    |
+| comm_code             | varchar(255)    |
+| comm_name             | varchar(255)    |
+| location_type         | varchar(255)    |
+| longitude             | double          |
+| latitude              | double          |
+| point                 | varchar(255)    |
+
 **Design considerations:**
 
 - Flexible data types to accommodate inconsistent open-data formatting  
@@ -163,23 +183,157 @@ This mirrors common **staging → analytics mart** patterns in data warehouses.
 
 ## 📈 Results & Insights
 
-> _(This section will be expanded with concrete findings parsed directly from SQL comments once available.)_
+The analysis produces practical outputs across **demand trends**, **service efficiency**, and **geographic recurrence hotspots**. Results below are derived directly from the SQL exploration queries and documented query outputs.
 
-### Service Demand Trends
-- Yearly request volumes reveal evolving municipal service needs.
+### 📌 Dataset Scope & Cleaning Outcomes
+- After excluding statistically insignificant / incomplete years (**2010**, **2011**) and partial capture for **2026 (through Jan 16)**, the cleaned dataset contains:
+  - **6,672,894** records (`service_requests_clean_v3`)
+- Average request volume across the retained years:
+  - **~476,635 requests per year** (computed as total requests / distinct years)
 
-### Operational Effectiveness Metrics
-- Most service requests do not reoccur within short timeframes, suggesting effective resolution.
-- Some service categories show repeated incidents, highlighting potential infrastructure or maintenance gaps.
+---
 
-### Geographic Patterns
-- Certain communities experience recurring service issues.
-- These insights could guide preventative maintenance and resource allocation.
+### 📈 Service Demand Trends (Temporal Patterns)
 
-### Data Quality Insights
-- Excluding incomplete years significantly improves analytical reliability.
+**Seasonality**
+- Requests are strongly seasonal:
+  - **Summer: ~30%**
+  - **Spring: ~25%**
+  - **Fall: ~24%**
+  - **Winter: ~21%**
 
-Overall, the project demonstrates how public operational data can be transformed into actionable insights.
+**Monthly spikes**
+- **June has the highest volume** (730k+ requests)
+- **May–August are consistently the busiest months** (each exceeding 600k total requests across the dataset)
+
+**Day-of-week behavior**
+- Weekday demand dominates:
+  - **Tue–Thu are busiest** (Tuesday highest at ~1.24M)
+  - Weekend demand is lowest:
+    - **Saturday ~454k**
+    - **Sunday ~399k**
+
+**High-volume years**
+- The highest-demand years include **2014, 2018, and 2023**, each surpassing **500k+ requests**
+- Only **five years** were above the overall yearly average:  
+  **2014, 2017, 2018, 2020, 2023**
+
+---
+
+### ⏱️ Service Responsiveness (Lifecycle / Resolution)
+
+**Overall response time**
+- Average time from request to closure:
+  - **19+ days** (mean response time)
+
+**Long-duration service categories**
+- Some request types show extremely long average closure times (500+ days), including:
+  - FAC inspection  
+  - Major transit projects  
+  - Rapid damage assessment  
+  - Traffic / roadmarking inquiry categories  
+
+**Extreme outliers**
+- Specific combinations of service and month show unusually high response time averages (2000+ days), such as:
+  - Streetlight-related requests in **Downtown** during **February**
+  - Traffic camera inquiry in **July**
+  - Lane reversal in **August**
+
+**Unresolved >30 days**
+- Requests taking longer than 30 days represent about:
+  - **~8%** of all requests
+
+**Status distribution**
+- **Closed: ~97%**
+- **Duplicate Closed: ~2%**
+- **Open: ~1%**
+- Requests marked **Open** remain open on average:
+  - **73+ days**
+
+---
+
+### 🔁 Recurrence & Operational Effectiveness (30-Day Repeat Logic)
+
+To measure whether issues are truly resolved, the analysis defines:
+
+- A **first occurrence** = no matching service at the same point in the previous 30 days  
+- A **repeat** = a matching service request appears again at the same point within the next 30 days  
+
+**Citywide recurrence rate**
+- Roughly **41%–46%** of first occurrences recur within 30 days, depending on year.
+  - Example:
+    - **2022: 41.61%**
+    - **2020: 45.26%**
+    - **2025: 43.10%**
+
+**One-off resolution rate (non-repeating)**
+- The share of first occurrences that **do NOT** recur within 30 days is fairly stable:
+  - ~**54%–58%** year-over-year
+  - Highest observed: **2022 ~58.39%**
+
+**How many “new” issues reoccur quickly**
+- Annual counts of first occurrences that repeat within 30 days range from:
+  - ~**34k–52k**, peaking in **2023 (51,710)**
+
+---
+
+### 🧭 What Reoccurs Most (Service-Level Insights)
+
+**Top services (overall) by volume of repeating first occurrences**
+These services produce the highest number of first occurrences that recur within 30 days:
+
+- Roads – Signs – Missing / Damaged (**7,616**)  
+- Roads – Debris on Street/Sidewalk/Boulevard (**7,357**)  
+- Corporate – Graffiti Concerns (**7,164**)  
+- Roads – Traffic or Pedestrian Light Repair (**7,147**)  
+- Roads – Roadway Maintenance (**7,086**)  
+
+**High recurrence-rate services (not just volume)**
+Some services have very high recurrence rates (recur / first occurrences), including:
+
+- Bylaw – Snow and Ice on Sidewalk: **~75.78%**
+- Roads – Snow and Ice Control: **~69.65%**
+- 311 Contact Us: **~66.82%**
+
+> Interpretation: these categories may represent issues that are either ongoing by nature (e.g., winter conditions) or reflect repeated follow-up and reporting patterns.
+
+---
+
+### 🗺️ Geographic Hotspots (Community + Point Patterns)
+
+**Community hotspots (by recurring first occurrences)**
+Top communities by count of recurring first occurrences include:
+- **Downtown Commercial Core (5,690)**
+- **Beltline (5,504)**
+- **Bowness (4,958)**
+- **Bridgeland/Riverside (4,434)**
+
+Each community contributes roughly **~0.5%–1.0%** of total recurrence volume individually, indicating recurrence is widespread but concentrated in high-activity areas.
+
+**Service + community combinations with strongest recurrence**
+Top combinations (first occurrences and recurrence rates):
+- Greenview Industrial Park — *WATR Industrial Monitoring Inquiry*: **84.10% recurrence**
+- Glendale — *Bylaw Tree/Shrub Infraction*: **81.37%**
+- Willow Park — *Bylaw Tree/Shrub Infraction*: **82.67%**
+- Auburn Bay / Mahogany — *CFD Operation Birthdays*: **100%** recurrence (small volume but fully repeating)
+
+**Point-level hotspot concentration**
+- The analysis identified **571,942** repeating first occurrences (citywide).
+- Individual hotspot points can account for thousands of repeats:
+  - Top hotspot point: **4,151** repeating first occurrences (~0.73% of total repeats)
+
+> Interpretation: a small number of physical locations generate disproportionate repeat activity — a useful signal for preventive maintenance, targeted inspections, or operational workflow review.
+
+---
+
+### ✅ Why These Results Matter
+These findings help bridge operational questions to data-driven insight:
+
+- **Seasonality and weekday demand patterns** support staffing and resource planning  
+- **Long closure times and outliers** reveal services that may need process review or better SLA tracking  
+- **30-day recurrence metrics** provide a practical proxy for “resolution effectiveness”  
+- **Community and point hotspots** help prioritize field work, infrastructure investment, and enforcement operations
+
 
 ---
 
@@ -200,5 +354,7 @@ Overall, the project demonstrates how public operational data can be transformed
 
 ## 📚 Data Source
 
-**City of Calgary Open Data Portal**  
+ 
+**[Calgary Open Data Portal](https://data.calgary.ca/)**
+
 311 Service Requests Dataset
